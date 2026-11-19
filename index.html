@@ -23,3 +23,108 @@
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Noto Sans KR", "Malgun Gothic", sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(20px, 5vh, 36px);
+    padding: env(safe-area-inset-top, 0px) 12px env(safe-area-inset-bottom, 0px);
+    overflow: hidden;
+  }
+  h1 {
+    font-size: clamp(15px, 5.4vw, 30px);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    white-space: nowrap;
+  }
+  .clock {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    width: 100%;
+    max-width: 640px;
+  }
+  .unit {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    border-left: 1px solid var(--line);
+  }
+  .unit:first-child { border-left: none; }
+  .num {
+    font-size: clamp(30px, 11vw, 72px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .unit:last-child .num { color: var(--accent); }
+  .label {
+    font-size: clamp(12px, 3.4vw, 16px);
+    font-weight: 500;
+    color: var(--muted);
+  }
+  .target {
+    font-size: clamp(11px, 3vw, 14px);
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+  <h1>이윤재 상납까지 남은 시간</h1>
+
+  <div class="clock" role="timer" aria-live="off">
+    <div class="unit"><span class="num" id="d">00</span><span class="label">일</span></div>
+    <div class="unit"><span class="num" id="h">00</span><span class="label">시간</span></div>
+    <div class="unit"><span class="num" id="m">00</span><span class="label">분</span></div>
+    <div class="unit"><span class="num" id="s">00</span><span class="label">초</span></div>
+  </div>
+
+  <p class="target" id="target"></p>
+
+<script>
+  // 지금 기준 다음 1월 1일 00:00:00
+  function nextNewYear() {
+    var now = new Date();
+    return new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0);
+  }
+
+  var target = nextNewYear();
+  document.getElementById("target").textContent =
+    target.getFullYear() + "년 1월 1일 00:00 까지";
+
+  var el = {
+    d: document.getElementById("d"),
+    h: document.getElementById("h"),
+    m: document.getElementById("m"),
+    s: document.getElementById("s")
+  };
+
+  function pad(n) { return String(n).padStart(2, "0"); }
+
+  function tick() {
+    var diff = target - new Date();
+    if (diff <= 0) {
+      target = nextNewYear();
+      diff = target - new Date();
+    }
+    var total = Math.floor(diff / 1000);
+    el.d.textContent = pad(Math.floor(total / 86400));
+    el.h.textContent = pad(Math.floor((total % 86400) / 3600));
+    el.m.textContent = pad(Math.floor((total % 3600) / 60));
+    el.s.textContent = pad(total % 60);
+  }
+
+  tick();
+  setInterval(tick, 250);
+</script>
+</body>
+</html>
