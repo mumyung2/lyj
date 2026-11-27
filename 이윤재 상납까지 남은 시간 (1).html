@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>이윤재 상납까지 남은 시간</title>
+<style>
+  :root {
+    --bg: #0b0a1f; --ink: #ffffff; --muted: #b9b5ea; --line: rgba(255,255,255,.16);
+    --accent: #22e4ff; --danger: #ff3b5c; --card: rgba(255,255,255,.07);
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0a1f; --ink: #ffffff; --muted: #b9b5ea; --line: rgba(255,255,255,.16);
+      --accent: #22e4ff; --danger: #ff3b5c; --card: rgba(255,255,255,.07);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0a1f; --ink: #ffffff; --muted: #b9b5ea; --line: rgba(255,255,255,.16);
+    --accent: #22e4ff; --danger: #ff3b5c; --card: rgba(255,255,255,.07);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; }
+  body {
+    background: linear-gradient(135deg, #1b0b3e, #0d2a73, #4a0d6b, #0a4f6e); background-size: 300% 300%; animation: bgmove 14s ease infinite; color: var(--ink);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: clamp(14px, 3.5vh, 30px); padding: 0 12px;
+    overflow: hidden; touch-action: manipulation; user-select: none; -webkit-user-select: none;
+  }
+  .money { font-size: clamp(24px, 7.6vw, 56px); font-weight: 700; letter-spacing: -0.04em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  @keyframes bgmove { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+  @keyframes glow { 0%, 100% { text-shadow: 0 0 10px currentColor; } 50% { text-shadow: 0 0 26px currentColor; } }
+  .money .lb { color: var(--muted); font-weight: 600; }
+  .money #amt { background: linear-gradient(90deg, #ff6ad5, #22e4ff); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 12px rgba(120,160,255,.45)); }
+  h1 { text-shadow: 0 0 14px rgba(185,181,234,.5); font-size: clamp(15px, 5.4vw, 30px); font-weight: 700; color: var(--muted); letter-spacing: -0.03em; white-space: nowrap; }
+  .clock { display: grid; grid-template-columns: repeat(4, 1fr); width: 100%; max-width: 640px; background: var(--card); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border: 1px solid var(--line); border-radius: 26px; padding: 24px 0; box-shadow: 0 0 40px rgba(34,228,255,.2), inset 0 0 24px rgba(255,255,255,.05); }
+  .unit { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 6px 0; border-left: 1px solid var(--line); }
+  .unit:first-child { border-left: none; }
+  .num { text-shadow: 0 0 18px rgba(255,255,255,.4); font-size: clamp(30px, 11vw, 72px); font-weight: 800; letter-spacing: -0.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+  .unit:last-child .num { color: var(--accent); animation: glow 1s ease-in-out infinite; }
+  .label { font-size: clamp(12px, 3.4vw, 16px); font-weight: 500; color: var(--muted); }
+  .target { font-size: clamp(11px, 3vw, 14px); color: var(--muted); }
+  body.over h1, body.over .num, body.over .unit:last-child .num, body.over .money { color: var(--danger); }
+  body.over .money .lb { color: var(--danger); opacity: .75; }
+  body.over .clock { border-color: var(--danger); box-shadow: 0 0 44px rgba(255,59,92,.35), inset 0 0 24px rgba(255,59,92,.08); }
+  body.over { background-image: linear-gradient(135deg, #2a0610, #62102a, #2a0610, #44103a); }
+  body.over .num { text-shadow: 0 0 18px rgba(255,59,92,.6); }
+  body.over .money #amt { background-image: linear-gradient(90deg, #ff3b5c, #ff9a3c); }
+  body.over h1 { color: var(--danger); }
+
+  .overlay { position: fixed; inset: 0; background: rgba(10,12,30,.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .overlay.show { display: flex; }
+  .modal { background: #171533; border: 1px solid var(--line); box-shadow: 0 0 40px rgba(34,228,255,.2); border-radius: 18px; padding: 22px 18px; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 14px; align-items: center; }
+  .modal h2 { font-size: 18px; font-weight: 700; }
+  .modal input { width: 100%; font-size: 24px; text-align: center; letter-spacing: .4em; padding: 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); user-select: text; -webkit-user-select: text; }
+  .msg { min-height: 18px; font-size: 13px; color: var(--danger); text-align: center; }
+  .row { display: flex; gap: 8px; width: 100%; }
+  .btn { flex: 1; padding: 13px 0; border: none; border-radius: 12px; font-size: 16px; font-weight: 700; background: var(--bg); color: var(--ink); cursor: pointer; }
+  .btn.pri { background: var(--accent); color: #fff; }
+  .btn.minus { color: var(--danger); }
+  .cur { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .hint { font-size: 12px; color: var(--muted); text-align: center; }
+</style>
+</head>
+<body>
+  <div class="money" id="money"><span class="lb">남은 돈:</span> <span id="amt">—</span>원</div>
+  <h1 id="title">이윤재 상납까지 남은 시간</h1>
+
+  <div class="clock" role="timer" aria-live="off">
+    <div class="unit"><span class="num" id="d">00</span><span class="label">일</span></div>
+    <div class="unit"><span class="num" id="h">00</span><span class="label">시간</span></div>
+    <div class="unit"><span class="num" id="m">00</span><span class="label">분</span></div>
+    <div class="unit"><span class="num" id="s">00</span><span class="label">초</span></div>
+  </div>
+
+  <p class="target">2027년 1월 1일 00:00 (KST) 까지</p>
+
+  <div class="overlay" id="pwBox">
+    <div class="modal">
+      <h2>관리자 확인</h2>
+      <input id="pw" type="password" inputmode="numeric" maxlength="8" autocomplete="off" placeholder="••••">
+      <div class="msg" id="pwMsg"></div>
+      <div class="row">
+        <button class="btn" id="pwCancel">취소</button>
+        <button class="btn pri" id="pwOk">확인</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="adminBox">
+    <div class="modal">
+      <h2>관리자</h2>
+      <div class="cur"><span id="adminAmt">0</span>원</div>
+      <div class="row">
+        <button class="btn minus" data-d="-1000">−1,000</button>
+        <button class="btn minus" data-d="-500">−500</button>
+      </div>
+      <div class="row">
+        <button class="btn pri" data-d="500">+500</button>
+        <button class="btn pri" data-d="1000">+1,000</button>
+      </div>
+      <div class="msg" id="adminMsg"></div>
+      <button class="btn" id="adminClose">닫기</button>
+    </div>
+  </div>
+
+<script>
+  var TARGET = new Date("2027-01-01T00:00:00+09:00").getTime();
+  var PASSWORD = "3961";
+  var remaining = 25000;  // 기본 금액 (저장된 값이 있으면 그 값으로 덮어씀)
+  var docRef = null;
+
+  var $ = function (id) { return document.getElementById(id); };
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function fmt(n) { return n === null ? "—" : Number(n).toLocaleString("ko-KR"); }
+
+  function renderMoney() {
+    $("amt").textContent = fmt(remaining);
+    $("adminAmt").textContent = fmt(remaining === null ? 0 : remaining);
+  }
+
+  function tick() {
+    var diff = TARGET - Date.now();
+    var over = diff <= 0;
+    var total = Math.floor(Math.abs(diff) / 1000);
+    var sign = over ? "+" : "";
+    $("d").textContent = sign + pad(Math.floor(total / 86400));
+    $("h").textContent = pad(Math.floor((total % 86400) / 3600));
+    $("m").textContent = pad(Math.floor((total % 3600) / 60));
+    $("s").textContent = pad(total % 60);
+    document.body.classList.toggle("over", over);
+    $("title").textContent = over ? "이윤재 상납 기한 초과" : "이윤재 상납까지 남은 시간";
+    document.title = over ? "기한 초과 이윤재" : "D-" + Math.ceil(diff / 86400000) + " 이윤재 상납";
+  }
+  tick();
+  setInterval(tick, 250);
+  document.addEventListener("visibilitychange", tick);
+
+  // ---- 데이터 저장 (공유 DB, 없으면 이 브라우저에만 저장) ----
+  function loadLocal() {
+    try {
+      var v = localStorage.getItem("debt_remaining");
+      if (v !== null && v !== "") { remaining = Number(v); }
+    } catch (e) {}
+  }
+  function saveLocal() {
+    try { localStorage.setItem("debt_remaining", String(remaining)); } catch (e) {}
+  }
+  loadLocal();
+  renderMoney();
+
+  (async function initDb() {
+    try {
+      if (!window.claude || !window.claude.use) return;
+      var db = await window.claude.use("db");
+      if (!db) return;
+      docRef = db.doc("debt/state");
+      docRef.onSnapshot(function (snap) {
+        if (snap.exists) {
+          var v = snap.data().remaining;
+          if (typeof v === "number") { remaining = v; renderMoney(); }
+        }
+      }, function () {});
+    } catch (e) {}
+  })();
+
+  async function change(delta) {
+    var next = Math.max(0, (remaining === null ? 0 : remaining) + delta);
+    var prev = remaining;
+    remaining = next;
+    renderMoney();
+    saveLocal();
+    $("adminMsg").textContent = "";
+    if (docRef) {
+      try { await docRef.set({ remaining: next, updatedAt: Date.now() }); }
+      catch (e) {
+        remaining = prev; renderMoney();
+        $("adminMsg").textContent = "저장 실패: 소유자 계정으로 열어야 공유 저장돼요.";
+      }
+    }
+  }
+
+  // ---- 5연속 터치 → 비밀번호 ----
+  var taps = 0, lastTap = 0;
+  function anyOpen() { return $("pwBox").classList.contains("show") || $("adminBox").classList.contains("show"); }
+  document.addEventListener("pointerdown", function () {
+    if (anyOpen()) return;
+    var now = Date.now();
+    taps = (now - lastTap < 200) ? taps + 1 : 1;
+    lastTap = now;
+    if (taps >= 5) { taps = 0; openPw(); }
+  });
+
+  function openPw() {
+    $("pw").value = ""; $("pwMsg").textContent = "";
+    $("pwBox").classList.add("show");
+    setTimeout(function () { $("pw").focus(); }, 50);
+  }
+  function closePw() { $("pwBox").classList.remove("show"); $("pw").blur(); }
+  function checkPw() {
+    if ($("pw").value === PASSWORD) {
+      closePw();
+      $("adminMsg").textContent = "";
+      renderMoney();
+      $("adminBox").classList.add("show");
+    } else {
+      $("pwMsg").textContent = "비밀번호가 틀렸어요";
+      $("pw").value = "";
+    }
+  }
+  $("pwOk").addEventListener("click", checkPw);
+  $("pwCancel").addEventListener("click", closePw);
+  $("pw").addEventListener("keydown", function (e) { if (e.key === "Enter") checkPw(); });
+  $("adminClose").addEventListener("click", function () { $("adminBox").classList.remove("show"); });
+  document.querySelectorAll("[data-d]").forEach(function (b) {
+    b.addEventListener("click", function () { change(Number(b.getAttribute("data-d"))); });
+  });
+</script>
+</body>
+</html>
